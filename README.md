@@ -4,7 +4,7 @@ NOTE: Before runing experiments make sure that all required packages installed
 
 ## Runing experiment
 
-```python
+```bash
 python3 train.py --config <path to config file (yaml or json)> --logs <folder to store logs>
 ```
 
@@ -14,7 +14,7 @@ When value passed with `--device` is less than 0 then CPU will be used for train
 
 ### Config structure
 
-`train.py` expect to see configuration file with structure like this:
+`train.py` expect configuration file with structure like this:
 
 
 ```
