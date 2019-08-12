@@ -34,12 +34,12 @@ random state: ... (int, optional, default - 2019)
 
 num workers: ... (int, optional, default - 6)
 
-log folder: ... (* required)
-
 loss: (* required)
     name: ...
     param1: ...
     param2: ...
+
+minimize metric: ... (boolean, optional, default - True)
 
 train: (* required)
     file: ...

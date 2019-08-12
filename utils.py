@@ -4,6 +4,7 @@ import yaml
 import numpy as np
 from pandas import read_csv
 
+from torch.nn import CrossEntropyLoss
 import torch.optim as optim
 from torch.nn.modules.loss import _Loss
 
@@ -24,6 +25,7 @@ optimizers_map = {
 }
 
 losses_map = {
+    'CrossEntropyLoss': CrossEntropyLoss,
     'BinaryDiceLoss': BinaryDiceLoss,
     'BinaryDiceLogLoss': BinaryDiceLogLoss,
     'MulticlassDiceLoss': MulticlassDiceLoss,

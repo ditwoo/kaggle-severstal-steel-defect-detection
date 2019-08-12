@@ -1,3 +1,4 @@
+import os
 import argparse
 from pathlib import Path
 from collections import OrderedDict
@@ -21,68 +22,37 @@ from catalyst.dl.callbacks import CheckpointCallback
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    '--config', '-c',
+    '--config',
     dest='config',
     type=str,
     help='config file'
 )
 parser.add_argument(
-    '--device', '-d',
+    '--device',
     dest='device',
     type=int,
     help='device to use (<0 - cpu, other (>0) - gpu numbers)',
     default=0
 )
 parser.add_argument(
-    '--logs', '-l',
+    '--logs',
     dest='logdir',
     type=str,
     help='directory to store logs'
+)
+parser.add_argument(
+    '--checkpoint',
+    dest='checkpoint',
+    type=str,
+    help='checkpoint to use for training',
+    default=''
 )
 args = vars(parser.parse_args())
 
 CONFIG_FILE = args['config']
 DEVICE = torch.device('cuda:{}'.format(args['device']) if args['device'] >= 0 else 'cpu')
 LOGDIR = args['logdir']
-
-
-"""
-Config structure (json or yaml):
------------------------------------------------------------------------
-
-model:
-    name: ...
-    parameter1: ...
-    parameter2: ...
-
-optimizer:
-    name: ...
-    parameter1: ...
-    parameter2: ...
-
-num epochs: ...
-random state: ...
-num workers: ...
-log folder: ...
-
-loss:
-    name: ...
-    param1: ...
-    param2: ...
-
-train:
-    file: ...
-    transforms: <albumentations dict of transformations>
-
-validation:
-    file: ...
-    transforms: <albumentations dict of transformations>
-
-test:
-    folder: ...
-
------------------------------------------------------------------------
-"""
+CHECKPOINT = args['checkpoint']
 
 
 def main() -> None:
@@ -127,6 +97,12 @@ def main() -> None:
     )
     
     loss_function = get_loss(**config['loss'])
+    is_metric_minimization = config.get('minimize metric', True)
+    
+    if CHECKPOINT != '' and os.path.exists(CHECKPOINT):
+        checkpoint_state = torch.load()
+    else:
+        checkpoint_state = None
 
     runner = SupervisedRunner(device=DEVICE)
     runner.train(
@@ -141,10 +117,12 @@ def main() -> None:
         ],
         scheduler=scheduler,
         verbose=True,
-        minimize_metric=False,
-        num_epochs=num_epochs
+        minimize_metric=is_metric_minimization,
+        num_epochs=num_epochs,
+        checkpoint_data=checkpoint_state
     )
-
+    
+    torch.save(model.state_dict(), f'{LOGDIR}/last_state.pth')
 
 
 if __name__ == '__main__':
