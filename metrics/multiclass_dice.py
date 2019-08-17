@@ -71,8 +71,8 @@ class MulticlassDiceMetricCallback(Callback):
     def __init__(
             self,
             prefix: str = 'dice',
-            input_key: str = "targets",
-            output_key: str = "logits",
+            input_key: str = 'targets',
+            output_key: str = 'logits',
             **metric_params
     ):
         self.prefix = prefix
@@ -81,6 +81,7 @@ class MulticlassDiceMetricCallback(Callback):
         self.metric_params = metric_params
         self.confusion_matrix = None
         self.class_names = metric_params['class_names']
+        self.avg_classes = metric_params['avg_classes']
 
     def _reset_stats(self):
         self.confusion_matrix = None
@@ -101,6 +102,7 @@ class MulticlassDiceMetricCallback(Callback):
         tp_fp_fn_dict = calculate_tp_fp_fn(confusion_matrix)
 
         batch_metrics: Dict = {self.class_names[key]: value for key, value in calculate_dice(tp_fp_fn_dict).items()}
+        batch_metrics['avg_dice'] = np.mean([batch_metrics[cls_name] for cls_name in self.avg_classes])
 
         state.metrics.add_batch_value(metrics_dict=batch_metrics)
 
@@ -115,3 +117,5 @@ class MulticlassDiceMetricCallback(Callback):
             state.metrics.epoch_values[state.loader_name][metric_name] = dice_value
 
         self._reset_stats()
+        
+__all__ = ['MulticlassDiceMetricCallback']

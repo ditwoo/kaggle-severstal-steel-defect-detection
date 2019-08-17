@@ -6,10 +6,10 @@ from torch.nn.modules.loss import _Loss
 from typing import List
 
 
-def soft_dice_score(pred: torch.Tensor,
-                    target: torch.Tensor,
+def soft_dice_score(pred: Tensor,
+                    target: Tensor,
                     smooth=1e-3,
-                    from_logits=False) -> torch.Tensor:
+                    from_logits=False) -> Tensor:
     if from_logits:
         pred = pred.sigmoid()
 
@@ -126,52 +126,4 @@ class MulticlassDiceLoss(_Loss):
         return loss
 
 
-class CCE(_Loss):
-    """Implementation of CCE for 2D model from logits."""
-
-    def __init__(self, from_logits=True, weight=None, smooth=1e-7, ignore_index=-1):
-        super(CCE, self).__init__()
-        self.from_logits = from_logits
-        self.weight = weight
-        self.smooth = smooth
-        self.ignore_index = ignore_index
-
-    def forward(self, y_pred: Tensor, y_true: Tensor) -> Tensor:
-        """
-        Args:
-            y_pred: NxCxHxW
-            y_true: NxHxW
-        Returns:
-        """
-        y_pred = nn.LogSoftmax(dim=1)(y_pred)
-
-        loss = nn.NLLLoss(ignore_index=self.ignore_index)
-
-        return loss(y_pred, y_true)
-    
-
-class WeightedLoss(_Loss):
-    """Wrapper class around loss function that applies weighted with fixed factor.
-    This class helps to balance multiple losses if they have different scales
-    """
-
-    def __init__(self, loss, weight=1.0):
-        super().__init__()
-        self.loss = loss
-        self.weight = weight
-
-    def forward(self, *input):
-        return self.loss(*input) * self.weight
-    
-    
-class JointLoss(_Loss):
-    def __init__(self, first, second, first_weight=1.0, second_weight=1.0):
-        super().__init__()
-        self.first = WeightedLoss(first, first_weight)
-        self.second = WeightedLoss(second, second_weight)
-
-    def forward(self, *input):
-        return self.first(*input) + self.second(*input)
-
-
-__all__ = ['BinaryDiceLoss', 'BinaryDiceLogLoss', 'MulticlassDiceLoss', 'CCE', 'WeightedLoss', 'JointLoss']
+__all__ = ['BinaryDiceLoss', 'BinaryDiceLogLoss', 'MulticlassDiceLoss']

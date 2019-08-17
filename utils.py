@@ -14,7 +14,7 @@ from albumentations.core.serialization import from_dict
 from dataset import SteelDataset
 from losses import (BinaryDiceLoss, BinaryDiceLogLoss,
                     MulticlassDiceLoss, CCE,
-                    WeightedLoss, JointLoss)
+                    WeightedLoss, JointLoss, TverskyLoss)
 
 optimizers_map = {
     'Adam': optim.Adam,
@@ -31,7 +31,8 @@ losses_map = {
     'MulticlassDiceLoss': MulticlassDiceLoss,
     'CCE': CCE,
     'WeightedLoss': WeightedLoss,
-    'JointLoss': JointLoss
+    'JointLoss': JointLoss,
+    'TverskyLoss': TverskyLoss
 }
 
 

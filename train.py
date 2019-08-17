@@ -8,21 +8,22 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 
-from catalyst.dl.runner import SupervisedRunner
 import catalyst.dl.callbacks as cbks
+from catalyst.dl.runner import SupervisedRunner
+from catalyst.dl.callbacks import CheckpointCallback
+from catalyst.utils.seed import set_global_seed
+
 
 from utils import (load_config, optimizers_map,
                    load_transforms, get_optimizer,
                    get_loss, get_dataset)
 from models import get_model
-
 from metrics import MulticlassDiceMetricCallback
-from catalyst.dl.callbacks import CheckpointCallback
 
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    '--config',
+    '--config', '-c',
     dest='config',
     type=str,
     help='config file'
@@ -35,16 +36,16 @@ parser.add_argument(
     default=0
 )
 parser.add_argument(
-    '--logs',
+    '--logs', '-l',
     dest='logdir',
     type=str,
     help='directory to store logs'
 )
 parser.add_argument(
-    '--checkpoint',
+    '--checkpoint', '-s',
     dest='checkpoint',
     type=str,
-    help='checkpoint to use for training',
+    help='model state to use for training',
     default=''
 )
 args = vars(parser.parse_args())
@@ -81,9 +82,14 @@ def main() -> None:
         num_workers=num_workers
     )
     
-    torch.manual_seed(random_state)
+    set_global_seed(random_state)
     
     model = get_model(**config['model'])
+    
+    if CHECKPOINT != '' and os.path.exists(CHECKPOINT):
+        checkpoint_state = torch.load(CHECKPOINT)['model_state_dict']
+        model.load_state_dict(checkpoint_state)
+    
     model = model.to(DEVICE)
     
     model_optimizer = get_optimizer(model.parameters(), **config['optimizer'])
@@ -97,12 +103,8 @@ def main() -> None:
     )
     
     loss_function = get_loss(**config['loss'])
+    metric = config.get('metric', 'loss')
     is_metric_minimization = config.get('minimize metric', True)
-    
-    if CHECKPOINT != '' and os.path.exists(CHECKPOINT):
-        checkpoint_state = torch.load()
-    else:
-        checkpoint_state = None
 
     runner = SupervisedRunner(device=DEVICE)
     runner.train(
@@ -112,14 +114,15 @@ def main() -> None:
         loaders=data_loaders,
         logdir=LOGDIR,
         callbacks=[
-            MulticlassDiceMetricCallback(class_names=list('01234')),
+            MulticlassDiceMetricCallback(class_names=list('01234'),
+                                         avg_classes=list('1234')),
             CheckpointCallback(save_n_best=3)
         ],
         scheduler=scheduler,
         verbose=True,
         minimize_metric=is_metric_minimization,
         num_epochs=num_epochs,
-        checkpoint_data=checkpoint_state
+        main_metric=metric
     )
     
     torch.save(model.state_dict(), f'{LOGDIR}/last_state.pth')
