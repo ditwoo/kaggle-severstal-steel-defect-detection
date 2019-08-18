@@ -8,13 +8,12 @@ from torch.nn import CrossEntropyLoss
 import torch.optim as optim
 from torch.nn.modules.loss import _Loss
 
-import albumentations.pytorch
-from albumentations.core.serialization import from_dict
-
-from dataset import SteelDataset
+from datasets import dataset_from_csv
 from losses import (BinaryDiceLoss, BinaryDiceLogLoss,
                     MulticlassDiceLoss, CCE,
                     WeightedLoss, JointLoss, TverskyLoss)
+
+
 
 optimizers_map = {
     'Adam': optim.Adam,
@@ -34,34 +33,6 @@ losses_map = {
     'JointLoss': JointLoss,
     'TverskyLoss': TverskyLoss
 }
-
-
-def _rle_str2arr(rle_str: str) -> np.ndarray:
-    res = []
-    if not (rle_str != rle_str):
-        res = list(map(int, rle_str.split(' ')))
-    return np.array(res)
-
-
-def load_transforms(transforms: dict):
-    return from_dict(transforms)
-
-
-def get_dataset(file: str, transforms: dict) -> SteelDataset:
-    classes = [f'cls{i}' for i in range(1, 5)]
-    
-    df = read_csv(file)
-    for _cls in classes:
-        df[_cls] = df[_cls].apply(_rle_str2arr)
-    
-    data_transforms = load_transforms(transforms)
-    
-    dataset = SteelDataset(
-        images=df['Image'].values,
-        rles=df[classes].values,
-        transforms=data_transforms
-    )
-    return dataset
     
     
 def load_config(filename: str) -> dict:

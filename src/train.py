@@ -87,6 +87,7 @@ def main() -> None:
     model = get_model(**config['model'])
     
     if CHECKPOINT != '' and os.path.exists(CHECKPOINT):
+        print(f'Usign {CHECKPOINT} checkpoint', flush=True)
         checkpoint_state = torch.load(CHECKPOINT)['model_state_dict']
         model.load_state_dict(checkpoint_state)
     
