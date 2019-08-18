@@ -34,12 +34,15 @@ def get_dataset(dataset_type: str, file: str, transforms: dict) -> SteelDataset:
     if dataset_type in {'SteelDataset', 'RAMSteelDataset', 'ChannelviseSteelDataset'}:
         for _cls in classes:
             df[_cls] = df[_cls].apply(_rle_str2arr)
+        _classes = classes
+    else:
+        _classes = 'IsAllMissing'
     
     data_transforms = load_transforms(transforms)
     
     dataset = dataset_cls(
         images=df['Image'].values,
-        target=df[classes].values,
+        target=df[_classes].values,
         transforms=data_transforms
     )
     return dataset

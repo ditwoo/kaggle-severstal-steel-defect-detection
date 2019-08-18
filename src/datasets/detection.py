@@ -30,7 +30,7 @@ class DetectionDataset(Dataset):
         if self.labels is None:
             return img
 
-        lbl = torch.LongTensor(self.labels[idx])
+        lbl = torch.FloatTensor([self.labels[idx]])
         return img, lbl
 
 

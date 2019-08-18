@@ -2,12 +2,14 @@ import torch.nn as nn
 from catalyst.contrib.models.segmentation import Unet
 from .unet_resnet import UNetResNet
 from .linknet import LinkNet34
+from .classification import DenseNetDetector
 
 
 model_map = {
     'Unet': Unet,
     'UNetResNet': UNetResNet,
-    'LinkNet34': LinkNet34
+    'LinkNet34': LinkNet34,
+    'DenseNetDetector': DenseNetDetector
 }
 
 
