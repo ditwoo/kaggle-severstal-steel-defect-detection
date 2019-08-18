@@ -3,13 +3,14 @@ from pandas import read_csv
 from torch.utils.data import Dataset
 from albumentations.core.serialization import from_dict
 
-from .steel import SteelDataset, RAMSteelDataset
+from .steel import SteelDataset, RAMSteelDataset, ChannelviseSteelDataset
 from .detection import DetectionDataset
 
 
 datasets_map = {
     'SteelDataset': SteelDataset,
     'RAMSteelDataset': RAMSteelDataset,
+    'ChannelviseSteelDataset': ChannelviseSteelDataset,
     'DetectionDataset': DetectionDataset
 }
 classes = [f'cls{i}' for i in range(1, 5)]
@@ -26,11 +27,11 @@ def load_transforms(transforms: dict):
     return from_dict(transforms)
 
 
-def get_dataset(name: str, file: str, transforms: dict) -> SteelDataset:
+def get_dataset(dataset_type: str, file: str, transforms: dict) -> SteelDataset:
     df = read_csv(file)
-    dataset_cls = datasets_map[name]
+    dataset_cls = datasets_map[dataset_type]
 
-    if name in {'SteelDataset', 'RAMSteelDataset'}:
+    if dataset_type in {'SteelDataset', 'RAMSteelDataset', 'ChannelviseSteelDataset'}:
         for _cls in classes:
             df[_cls] = df[_cls].apply(_rle_str2arr)
     

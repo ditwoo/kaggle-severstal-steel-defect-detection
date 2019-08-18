@@ -47,6 +47,21 @@ def build_mask(rles, input_shape) -> np.ndarray:
     return mask
 
 
+def build_masks(rles, input_shape) -> np.ndarray:
+    """
+    Convert list of rles of image to ndarray of masks with dimensions equal to HxWxC
+    Where each pixel will be 0 - nothing, 1 - 4 instance classes
+    """
+    depth = len(rles)
+    masks = np.zeros((*input_shape, depth), dtype=np.uint8)
+    
+    for i, rle in enumerate(rles):
+        if len(rle) != 0:
+            masks[:, :, i] = rle2mask(rle, input_shape) > 0
+    
+    return masks
+
+
 def build_rles(masks) -> list:
     """
     Build rle from given mask.

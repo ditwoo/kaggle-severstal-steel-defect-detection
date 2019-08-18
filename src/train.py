@@ -13,9 +13,7 @@ from catalyst.dl.runner import SupervisedRunner
 from catalyst.dl.callbacks import CheckpointCallback
 from catalyst.utils.seed import set_global_seed
 
-
-from utils import (load_config, optimizers_map,
-                   load_transforms, get_optimizer,
+from utils import (load_config, optimizers_map, get_optimizer,
                    get_loss, get_dataset)
 from models import get_model
 from metrics import MulticlassDiceMetricCallback
@@ -87,9 +85,9 @@ def main() -> None:
     model = get_model(**config['model'])
     
     if CHECKPOINT != '' and os.path.exists(CHECKPOINT):
-        print(f'Usign {CHECKPOINT} checkpoint', flush=True)
         checkpoint_state = torch.load(CHECKPOINT)['model_state_dict']
         model.load_state_dict(checkpoint_state)
+        print(f'Using {CHECKPOINT} checkpoint', flush=True)
     
     model = model.to(DEVICE)
     
@@ -115,8 +113,11 @@ def main() -> None:
         loaders=data_loaders,
         logdir=LOGDIR,
         callbacks=[
-            MulticlassDiceMetricCallback(class_names=list('01234'),
-                                         avg_classes=list('1234')),
+            cbks.DiceCallback(),
+            # MulticlassDiceMetricCallback(
+            #     class_names=zip(range(4), list('0123')),
+            #     avg_classes=list('0123')
+            # ),
             CheckpointCallback(save_n_best=3)
         ],
         scheduler=scheduler,

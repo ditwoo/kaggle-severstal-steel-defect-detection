@@ -4,11 +4,11 @@ import yaml
 import numpy as np
 from pandas import read_csv
 
-from torch.nn import CrossEntropyLoss
+from torch.nn import BCELoss, BCEWithLogitsLoss, CrossEntropyLoss
 import torch.optim as optim
 from torch.nn.modules.loss import _Loss
 
-from datasets import dataset_from_csv
+from datasets import get_dataset
 from losses import (BinaryDiceLoss, BinaryDiceLogLoss,
                     MulticlassDiceLoss, CCE,
                     WeightedLoss, JointLoss, TverskyLoss)
@@ -24,6 +24,8 @@ optimizers_map = {
 }
 
 losses_map = {
+    'BCELoss': BCELoss,
+    'BCEWithLogitsLoss': BCEWithLogitsLoss,
     'CrossEntropyLoss': CrossEntropyLoss,
     'BinaryDiceLoss': BinaryDiceLoss,
     'BinaryDiceLogLoss': BinaryDiceLogLoss,
