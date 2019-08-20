@@ -1,5 +1,5 @@
 import torch.nn as nn
-from catalyst.contrib.models.segmentation import Unet
+from segmentation_models_pytorch.unet import Unet
 from .unet_resnet import UNetResNet
 from .linknet import LinkNet34
 from .classification import DenseNetDetector

@@ -8,6 +8,7 @@ from torch.nn import BCELoss, BCEWithLogitsLoss, CrossEntropyLoss
 import torch.optim as optim
 from torch.nn.modules.loss import _Loss
 
+from optimizers import RAdam, PlainRAdam, AdamW
 from datasets import get_dataset
 from losses import (BinaryDiceLoss, BinaryDiceLogLoss,
                     MulticlassDiceLoss, CCE,
@@ -17,6 +18,9 @@ from losses import (BinaryDiceLoss, BinaryDiceLogLoss,
 
 optimizers_map = {
     'Adam': optim.Adam,
+    'RAdam': RAdam,
+    'PlainRAdam': PlainRAdam,
+    'AdamW': AdamW,
     'Adamax': optim.Adamax,
     'ASGD': optim.ASGD,
     'RMSprop': optim.RMSprop,

@@ -16,7 +16,7 @@ from catalyst.utils.seed import set_global_seed
 from utils import (load_config, optimizers_map, get_optimizer,
                    get_loss, get_dataset)
 from models import get_model
-from metrics import MulticlassDiceMetricCallback
+from metrics import MulticlassDiceMetricCallback, ChannelviseDiceMetricCallback
 
 
 parser = argparse.ArgumentParser()
@@ -114,6 +114,7 @@ def main() -> None:
         logdir=LOGDIR,
         callbacks=[
             cbks.DiceCallback(),
+            # ChannelviseDiceMetricCallback(),
             # MulticlassDiceMetricCallback(
             #     class_names=zip(range(4), list('0123')),
             #     avg_classes=list('0123')
