@@ -2,7 +2,7 @@ import numpy as np
 import torch
 from pathlib import Path
 from torch.utils.data import Dataset
-from .utils import read_rgb_image, image2tensor, build_mask, build_masks
+from .utils import read_rgb_image, read_grayscale_image, image2tensor, build_mask, build_masks
 
 
 class SteelDataset(Dataset):
@@ -64,7 +64,12 @@ class RAMSteelDataset(SteelDataset):
 
 
 class ChannelviseSteelDataset(Dataset):
-    def __init__(self, images, target=None, folder: Path = None, transforms=None):
+    def __init__(self, 
+                 images, 
+                 target=None, 
+                 folder: Path = None, 
+                 transforms=None,
+                 read_as_rgb: bool = True):
         """
         images: List[str] - list of images (only names)
         rles: List[List[List[int]]] - list of rles list
@@ -75,13 +80,14 @@ class ChannelviseSteelDataset(Dataset):
         self.folder = folder
         self.rles = target
         self.transforms = transforms
+        self.img_reader = read_rgb_image if read_as_rgb else read_grayscale_image
         
     def __len__(self):
         return len(self.images)
 
     def _get_image(self, idx) -> np.ndarray:
         path2img = self.folder / self.images[idx] if self.folder else self.images[idx]
-        img = read_rgb_image(path2img)
+        img = self.img_reader(path2img)
         return img
     
     def __getitem__(self, idx):
@@ -105,4 +111,4 @@ class ChannelviseSteelDataset(Dataset):
         return img, masks
 
 
-__all__ = ['SteelDataset', 'RAMSteelDataset']
+__all__ = ['SteelDataset', 'RAMSteelDataset', 'ChannelviseSteelDataset']

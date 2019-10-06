@@ -27,7 +27,7 @@ def load_transforms(transforms: dict):
     return from_dict(transforms)
 
 
-def get_dataset(dataset_type: str, file: str, transforms: dict) -> SteelDataset:
+def get_dataset(dataset_type: str, file: str, transforms: dict, **kwargs) -> Dataset:
     df = read_csv(file)
     dataset_cls = datasets_map[dataset_type]
 
@@ -43,7 +43,8 @@ def get_dataset(dataset_type: str, file: str, transforms: dict) -> SteelDataset:
     dataset = dataset_cls(
         images=df['Image'].values,
         target=df[_classes].values,
-        transforms=data_transforms
+        transforms=data_transforms,
+        **kwargs
     )
     return dataset
 

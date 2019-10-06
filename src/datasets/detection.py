@@ -6,11 +6,17 @@ from .utils import read_rgb_image, image2tensor
 
 
 class DetectionDataset(Dataset):
-    def __init__(self, images, target=None, folder: Path = None, transforms=None):
+    def __init__(self, 
+                 images, 
+                 target=None, 
+                 folder: Path = None, 
+                 transforms=None, 
+                 target_long: bool = False):
         self.images = images
         self.labels = target
         self.folder: Path = folder
         self.transforms = transforms
+        self.is_target_long = target_long
 
     def __len__(self):
         return len(self.images)
@@ -29,8 +35,11 @@ class DetectionDataset(Dataset):
 
         if self.labels is None:
             return img
-
-        lbl = torch.FloatTensor([self.labels[idx]])
+        
+        if self.is_target_long:
+            lbl = torch.LongTensor(self.labels[idx])
+        else:
+            lbl = torch.FloatTensor([self.labels[idx]])
         return img, lbl
 
 

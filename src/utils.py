@@ -8,11 +8,11 @@ from torch.nn import BCELoss, BCEWithLogitsLoss, CrossEntropyLoss
 import torch.optim as optim
 from torch.nn.modules.loss import _Loss
 
-from optimizers import RAdam, PlainRAdam, AdamW
-from datasets import get_dataset
-from losses import (BinaryDiceLoss, BinaryDiceLogLoss,
-                    MulticlassDiceLoss, CCE,
-                    WeightedLoss, JointLoss, TverskyLoss)
+from .optimizers import RAdam, PlainRAdam, AdamW
+from .datasets import get_dataset
+from .losses import (BinaryDiceLoss, BinaryDiceLogLoss,
+                     MulticlassDiceLoss, CCE,
+                     WeightedLoss, JointLoss, TverskyLoss)
 
 
 

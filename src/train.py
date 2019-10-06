@@ -13,10 +13,11 @@ from catalyst.dl.runner import SupervisedRunner
 from catalyst.dl.callbacks import CheckpointCallback
 from catalyst.utils.seed import set_global_seed
 
-from utils import (load_config, optimizers_map, get_optimizer,
-                   get_loss, get_dataset)
-from models import get_model
-from metrics import MulticlassDiceMetricCallback, ChannelviseDiceMetricCallback
+from .utils import (load_config, optimizers_map, get_optimizer,
+                    get_loss, get_dataset)
+from .models import get_model
+from  metrics import PositiveAndNegativeDiceMetricCallback
+# from metrics import MulticlassDiceMetricCallback, ChannelviseDiceMetricCallback
 
 
 parser = argparse.ArgumentParser()
@@ -93,17 +94,17 @@ def main() -> None:
     
     model_optimizer = get_optimizer(model.parameters(), **config['optimizer'])
     
-    scheduler = optim.lr_scheduler.ReduceLROnPlateau(
-        model_optimizer, 
-        mode='max',
-        patience=5,
-        factor=0.2, 
-        verbose=True
-    )
-    
     loss_function = get_loss(**config['loss'])
     metric = config.get('metric', 'loss')
     is_metric_minimization = config.get('minimize metric', True)
+
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+        model_optimizer, 
+        mode='min' if is_metric_minimization else 'max',
+        patience=3,
+        factor=0.2, 
+        verbose=True
+    )
 
     runner = SupervisedRunner(device=DEVICE)
     runner.train(
@@ -114,12 +115,16 @@ def main() -> None:
         logdir=LOGDIR,
         callbacks=[
             cbks.DiceCallback(),
+            cbks.IouCallback(),
+            # PositiveAndNegativeDiceMetricCallback(),
             # ChannelviseDiceMetricCallback(),
             # MulticlassDiceMetricCallback(
             #     class_names=zip(range(4), list('0123')),
             #     avg_classes=list('0123')
             # ),
-            CheckpointCallback(save_n_best=3)
+            cbks.CriterionCallback(),
+            cbks.OptimizerCallback(accumulation_steps=4),  # accumulate gradients of 4 batches
+            CheckpointCallback(save_n_best=3),
         ],
         scheduler=scheduler,
         verbose=True,
@@ -128,7 +133,7 @@ def main() -> None:
         main_metric=metric
     )
     
-    torch.save(model.state_dict(), f'{LOGDIR}/last_state.pth')
+    # torch.save(model.state_dict(), f'{LOGDIR}/last_state.pth')
 
 
 if __name__ == '__main__':

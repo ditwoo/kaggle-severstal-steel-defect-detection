@@ -3,7 +3,7 @@ from typing import Dict
 
 import numpy as np
 import torch
-from catalyst.dl.core import Callback, RunnerState
+from catalyst.dl.core import Callback, CallbackOrder, RunnerState
 
 
 def calculate_confusion_matrix_from_arrays(prediction, ground_truth, num_classes):
@@ -74,8 +74,8 @@ class MulticlassDiceMetricCallback(Callback):
             prefix: str = 'dice',
             input_key: str = 'targets',
             output_key: str = 'logits',
-            **metric_params
-    ):
+            **metric_params):
+        super().__init__(CallbackOrder.Metric)
         self.prefix = prefix
         self.input_key = input_key
         self.output_key = output_key

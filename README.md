@@ -5,7 +5,7 @@ NOTE: Before runing experiments make sure that all required packages installed
 ## Runing experiment
 
 ```bash
-python3 train.py --config <path to config file (yaml or json)> --logs <folder to store logs>
+python3 -m src.train --config <path to config file (yaml or json)> --logs <folder to store logs>
 ```
 
 `train.py` also have optional parameter `--device` (or `-d`) -- device id to use (ie GPU number).

@@ -17,9 +17,14 @@ class DenseNetDetector(nn.Module):
         self.model = backbone_model(pretrained=True)
 
         classifier = nn.Sequential(
-            nn.Linear(self.model.classifier.in_features, 512),
+            nn.Linear(self.model.classifier.in_features, 1024),
+            nn.ReLU(True),
+            nn.BatchNorm1d(1024),
+            nn.Dropout(0.5),
+            nn.Linear(1024, 512),
             nn.ReLU(True),
             nn.BatchNorm1d(512),
+            nn.Dropout(0.5),
             nn.Linear(512, num_classes)
         )
 

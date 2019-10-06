@@ -78,8 +78,8 @@ def read_rgb_image(path: Union[str, Path]) -> np.ndarray:
 
 
 def read_grayscale_image(path: Union[str, Path]) -> np.ndarray:
-    img = cv2.imread(str(image_path), cv2.IMREAD_GRAYSCALE)
-    img = np.expand_dims(img, 2)
+    img = cv2.imread(str(path), cv2.IMREAD_GRAYSCALE)
+    img = np.expand_dims(img, 2)  # H*W -> C*H*W
     return img
 
 

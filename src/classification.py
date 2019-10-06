@@ -13,10 +13,10 @@ from catalyst.dl.runner import SupervisedRunner
 from catalyst.dl.callbacks import CheckpointCallback
 from catalyst.utils.seed import set_global_seed
 
-from utils import (load_config, optimizers_map, get_optimizer,
-                   get_loss, get_dataset)
-from models import get_model
-from metrics import MulticlassDiceMetricCallback
+from .utils import (load_config, optimizers_map, get_optimizer,
+                    get_loss, get_dataset)
+from .models import get_model
+from .metrics import AccuracyCallback
 
 
 parser = argparse.ArgumentParser()
@@ -93,17 +93,17 @@ def main() -> None:
     
     model_optimizer = get_optimizer(model.parameters(), **config['optimizer'])
     
-    scheduler = optim.lr_scheduler.ReduceLROnPlateau(
-        model_optimizer, 
-        mode='max',
-        patience=5,
-        factor=0.2, 
-        verbose=True
-    )
-    
     loss_function = get_loss(**config['loss'])
     metric = config.get('metric', 'loss')
     is_metric_minimization = config.get('minimize metric', True)
+
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+        model_optimizer, 
+        mode='min' if is_metric_minimization else 'max',
+        patience=3,
+        factor=0.2, 
+        verbose=True
+    )
 
     runner = SupervisedRunner(device=DEVICE)
     runner.train(
@@ -114,6 +114,9 @@ def main() -> None:
         logdir=LOGDIR,
         callbacks=[
             cbks.AUCCallback(),
+            cbks.F1ScoreCallback(),
+            AccuracyCallback(),
+            cbks.CriterionCallback(),
             CheckpointCallback(save_n_best=3)
         ],
         scheduler=scheduler,
@@ -122,8 +125,6 @@ def main() -> None:
         num_epochs=num_epochs,
         main_metric=metric
     )
-    
-    torch.save(model.state_dict(), f'{LOGDIR}/last_state.pth')
 
 
 if __name__ == '__main__':

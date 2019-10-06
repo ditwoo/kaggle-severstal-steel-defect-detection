@@ -1,20 +1,8 @@
-import torch.nn as nn
-from segmentation_models_pytorch.unet import Unet
+from .unet import ResUnet
 from .unet_resnet import UNetResNet
 from .linknet import LinkNet34
-from .classification import DenseNetDetector
+from .detection import DenseNetDetector
+from torchvision.models import resnet34
 
 
-model_map = {
-    'Unet': Unet,
-    'UNetResNet': UNetResNet,
-    'LinkNet34': LinkNet34,
-    'DenseNetDetector': DenseNetDetector
-}
-
-
-def get_model(name: str, **kwargs) -> nn.Module:
-    return model_map[name](**kwargs)
-
-
-__all__ = ['Unet', 'UNetResNet', 'LinkNet34']
+__all__ = ['ResUnet', 'UNetResNet', 'LinkNet34', 'DenseNetDetector', 'resnet34']
