@@ -1,6 +1,6 @@
 # [Severstal: Steel Defect Detection](https://www.kaggle.com/c/severstal-steel-defect-detection)
 
-NOTE: Before runing experiments make sure that all required packages installed
+NOTE: Before runing experiments make sure that all required packages installed <br>
 NOTE: Link to [catalyst examples](https://github.com/catalyst-team/catalyst/tree/master/examples)
 
 ## About
