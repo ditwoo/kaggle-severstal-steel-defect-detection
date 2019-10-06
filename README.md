@@ -1,54 +1,24 @@
 # [Severstal: Steel Defect Detection](https://www.kaggle.com/c/severstal-steel-defect-detection)
 
 NOTE: Before runing experiments make sure that all required packages installed
+NOTE: Link to [catalyst examples](https://github.com/catalyst-team/catalyst/tree/master/examples)
 
-## Runing experiment
+## About
+
+Current pipeline looks:
+
+```
+detect images where all channels missed -> segment defects on images without missing channels
+```
+
+### Detection model
 
 ```bash
-python3 -m src.train --config <path to config file (yaml or json)> --logs <folder to store logs>
+bash detection.sh
 ```
 
-`train.py` also have optional parameter `--device` (or `-d`) -- device id to use (ie GPU number).
+### Segmentation model
 
-When value passed with `--device` is less than 0 then CPU will be used for training.
-
-### Config structure
-
-`train.py` expect configuration file with structure like this:
-
-
-```
-model: (* required)
-    name: ...
-    parameter1: ...
-    parameter2: ...
-
-optimizer: (* requred)
-    name: ...
-    parameter1: ...
-    parameter2: ...
-
-num epochs: ... (int, optional, default - 2)
-
-random state: ... (int, optional, default - 2019)
-
-num workers: ... (int, optional, default - 6)
-
-loss: (* required)
-    name: ...
-    param1: ...
-    param2: ...
-
-minimize metric: ... (boolean, optional, default - True)
-
-train: (* required)
-    file: ...
-    transforms: <albumentations dict of transformations>
-
-validation: (* required)
-    file: ...
-    transforms: <albumentations dict of transformations>
-
-test:
-    folder: ...
+```bash
+bash segmentation.sh
 ```
