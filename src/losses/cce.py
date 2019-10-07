@@ -25,5 +25,6 @@ class CCE(_Loss):
         loss = nn.NLLLoss(ignore_index=self.ignore_index)
 
         return loss(y_pred, y_true)
-    
-__all__ = ['CCE']
+
+
+__all__ = ["CCE"]

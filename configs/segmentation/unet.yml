@@ -6,25 +6,58 @@ train:
     __version__: 0.3.1
     transform:
       __class_fullname__: albumentations.core.composition.Compose
-      p: 1
+      additional_targets: {}
+      bbox_params: {}
+      keypoint_params: {}
+      p: 1.0
       transforms:
-      - __class_fullname__: albumentations.augmentations.transforms.RandomCrop
+      - __class_fullname__: albumentations.core.composition.OneOrOther
+        p: 0.5
+        transforms:
+        - __class_fullname__: albumentations.augmentations.transforms.Rotate
+          always_apply: false
+          border_mode: 4
+          interpolation: 1
+          limit:
+          - -10
+          - 10
+          mask_value: null
+          p: 0.5
+          value: null
+        - __class_fullname__: albumentations.augmentations.transforms.RandomCrop
+          always_apply: false
+          height: 200
+          p: 0.75
+          width: 1400
+      - __class_fullname__: albumentations.augmentations.transforms.PadIfNeeded
         always_apply: false
-        p: 1
-        height: 256
-        width: 1600
+        border_mode: 4
+        mask_value: null
+        min_height: 256
+        min_width: 1600
+        p: 1.0
+        value: null
       - __class_fullname__: albumentations.augmentations.transforms.Flip
         always_apply: false
         p: 0.5
+      - __class_fullname__: albumentations.augmentations.transforms.Blur
+        always_apply: false
+        blur_limit:
+        - 3
+        - 5
+        p: 0.5
       - __class_fullname__: albumentations.augmentations.transforms.Normalize
         always_apply: false
-        p: 1
-        mean: [0.485, 0.456, 0.406]
-        std: [0.229, 0.224, 0.225]
-        max_pixel_value: 255
-      bbox_params: {}
-      keypoint_params: {}
-      additional_targets: {}
+        max_pixel_value: 255.0
+        mean:
+        - 0.485
+        - 0.456
+        - 0.406
+        p: 1.0
+        std:
+        - 0.229
+        - 0.224
+        - 0.225
 
 validation:
   dataset_type: "ChannelviseSteelDataset"
@@ -51,27 +84,24 @@ validation:
       additional_targets: {}
 
 model:
-  name: UNetResNet
-  encoder_depth: 34
-  pretrained: true
-  is_deconv: true
+  name: Unet
+  encoder: 'resnet18'
   num_classes: 4
   
-num epochs: 20
+num epochs: 35
 random state: 2019
 batch size: 8
-num workers: 12
+num workers: 6
 
 optimizer:
   name: RAdam
-  lr: 0.001
-  weight_decay: 0.00001
+  lr: 0.0005
 
 loss:
   name: BCEWithLogitsLoss
 
-metric: dice
-minimize metric: false
+# metric: dice
+# minimize metric: false
   
 test:
   folder: "/home/dmdr/Documents/Code/Python/kaggle/severstal_steel_defect_detection/data/test_images"

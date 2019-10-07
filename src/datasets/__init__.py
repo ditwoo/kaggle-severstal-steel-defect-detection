@@ -8,18 +8,18 @@ from .detection import DetectionDataset
 
 
 datasets_map = {
-    'SteelDataset': SteelDataset,
-    'RAMSteelDataset': RAMSteelDataset,
-    'ChannelviseSteelDataset': ChannelviseSteelDataset,
-    'DetectionDataset': DetectionDataset
+    "SteelDataset": SteelDataset,
+    "RAMSteelDataset": RAMSteelDataset,
+    "ChannelviseSteelDataset": ChannelviseSteelDataset,
+    "DetectionDataset": DetectionDataset,
 }
-classes = [f'cls{i}' for i in range(1, 5)]
+classes = [f"cls{i}" for i in range(1, 5)]
 
 
 def _rle_str2arr(rle_str: str) -> np.ndarray:
     res = []
     if not (rle_str != rle_str):
-        res = list(map(int, rle_str.split(' ')))
+        res = list(map(int, rle_str.split(" ")))
     return np.array(res)
 
 
@@ -31,20 +31,19 @@ def get_dataset(dataset_type: str, file: str, transforms: dict, **kwargs) -> Dat
     df = read_csv(file)
     dataset_cls = datasets_map[dataset_type]
 
-    if dataset_type in {'SteelDataset', 'RAMSteelDataset', 'ChannelviseSteelDataset'}:
+    if dataset_type in {"SteelDataset", "RAMSteelDataset", "ChannelviseSteelDataset"}:
         for _cls in classes:
             df[_cls] = df[_cls].apply(_rle_str2arr)
         _classes = classes
     else:
-        _classes = 'IsAllMissing'
-    
+        _classes = "IsAllMissing"
+
     data_transforms = load_transforms(transforms)
-    
+
     dataset = dataset_cls(
-        images=df['Image'].values,
+        images=df["Image"].values,
         target=df[_classes].values,
         transforms=data_transforms,
-        **kwargs
+        **kwargs,
     )
     return dataset
-

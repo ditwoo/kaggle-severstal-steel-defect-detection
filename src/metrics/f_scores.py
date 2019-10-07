@@ -6,8 +6,9 @@ from numba import njit, prange
 
 
 @njit(parallel=True)
-def _fast_f_score_parts(y_pred: np.ndarray, 
-                        y_true: np.ndarray) -> Tuple[int, int, int, int]:
+def _fast_f_score_parts(
+    y_pred: np.ndarray, y_true: np.ndarray
+) -> Tuple[int, int, int, int]:
     size: int = y_true.shape[0]
     tp: int = 0
     tn: int = 0
@@ -25,9 +26,7 @@ def _fast_f_score_parts(y_pred: np.ndarray,
     return tp, tn, fp, fn
 
 
-def f_betta(outputs: np.ndarray,
-            targets: np.ndarray, 
-            beta: float = 1.0) -> float:
+def f_betta(outputs: np.ndarray, targets: np.ndarray, beta: float = 1.0) -> float:
     """
     Compute f_beta score.
 
@@ -38,24 +37,26 @@ def f_betta(outputs: np.ndarray,
     """
     tp, _, fp, fn = _fast_f_score_parts(outputs, targets)
 
-    precision: float = tp / (tp + fp) if tp + fp > 0 else 0.
-    recall: float = tp / (tp + fn) if tp + fn > 0 else 0.
+    precision: float = tp / (tp + fp) if tp + fp > 0 else 0.0
+    recall: float = tp / (tp + fn) if tp + fn > 0 else 0.0
 
     b2: float = beta * beta
     numerator: float = (1 + b2) * precision * recall
     denominator: float = (b2 * precision) + recall
-    f: float = numerator / denominator if denominator > 0 else 0.
-    
+    f: float = numerator / denominator if denominator > 0 else 0.0
+
     return f
 
 
 class F1Callback(Callback):
-    def __init__(self,
-                 prefix: str = 'f1',
-                 input_key: str = 'targets',
-                 output_key: str = 'logits',
-                 threshold: float = 0.5,
-                 **metric_params):
+    def __init__(
+        self,
+        prefix: str = "f1",
+        input_key: str = "targets",
+        output_key: str = "logits",
+        threshold: float = 0.5,
+        **metric_params,
+    ):
         super().__init__(CallbackOrder.Metric)
         self.prefix: str = prefix
         self.input_key: str = input_key
@@ -71,19 +72,21 @@ class F1Callback(Callback):
         targets = state.input[self.input_key]
         targets = targets.detach().cpu().view(-1).numpy().astype(np.int8)
 
-        state.metrics.add_batch_value(metrics_dict={
-            f'{self.prefix}': f_betta(outputs, targets, 1)
-        })
+        state.metrics.add_batch_value(
+            metrics_dict={f"{self.prefix}": f_betta(outputs, targets, 1)}
+        )
 
 
 class FBetaCallback(Callback):
-    def __init__(self,
-                 prefix: str = 'f_betta',
-                 input_key: str = 'targets',
-                 output_key: str = 'logits',
-                 threshold: float = 0.5,
-                 beta: float = 1.0,
-                 **metric_params):
+    def __init__(
+        self,
+        prefix: str = "f_betta",
+        input_key: str = "targets",
+        output_key: str = "logits",
+        threshold: float = 0.5,
+        beta: float = 1.0,
+        **metric_params,
+    ):
         """
         F_betta score callback.
 
@@ -108,12 +111,12 @@ class FBetaCallback(Callback):
         targets = state.input[self.input_key]
         targets = targets.detach().cpu().view(-1).numpy().astype(np.int8)
 
-        state.metrics.add_batch_value(metrics_dict={
-            f'{self.prefix}': f_betta(outputs, targets, self.beta)
-        })
+        state.metrics.add_batch_value(
+            metrics_dict={f"{self.prefix}": f_betta(outputs, targets, self.beta)}
+        )
 
 
-__all__ = ('F1Callback', 'FBetaCallback')
+__all__ = ("F1Callback", "FBetaCallback")
 
 
 def test_f1():
@@ -131,9 +134,9 @@ def test_f1():
     fast_metric_score = 2 * precision * recall / (precision + recall)
     correct_score = f1_score(_true, _pred)
 
-    print(f' Metric value: - {fast_metric_score}', flush=True)
-    print(f'Correct value: - {correct_score}', flush=True)
-    assert fast_metric_score == correct_score, 'Metrics should be the same!'
+    print(f" Metric value: - {fast_metric_score}", flush=True)
+    print(f"Correct value: - {correct_score}", flush=True)
+    assert fast_metric_score == correct_score, "Metrics should be the same!"
 
 
 def test_fbeta():
@@ -153,14 +156,16 @@ def test_fbeta():
     assert precision_score(_true, _pred) == precision
     assert recall_score(_true, _pred) == recall
 
-    fast_metric_score = (1 + beta2) * precision * recall / ((beta2 * precision) + recall)
+    fast_metric_score = (
+        (1 + beta2) * precision * recall / ((beta2 * precision) + recall)
+    )
     correct_score = fbeta_score(_true, _pred, beta)
 
-    print(f' Metric value: - {fast_metric_score}', flush=True)
-    print(f'Correct value: - {correct_score}', flush=True)
-    assert fast_metric_score == correct_score, 'Metrics should be the same!'
+    print(f" Metric value: - {fast_metric_score}", flush=True)
+    print(f"Correct value: - {correct_score}", flush=True)
+    assert fast_metric_score == correct_score, "Metrics should be the same!"
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     test_f1()
     test_fbeta()

@@ -1,30 +1,17 @@
 from catalyst.dl import registry
 from catalyst.dl import SupervisedRunner as Runner
 
-from .models import (
-    ResUnet, 
-    UNetResNet, 
-    LinkNet34, 
-    DenseNetDetector, 
-    resnet34
-)
+from .models import ResUnet, UNetResNet, LinkNet34, DenseNetDetector, resnet34
 from .experiment import Experiment
-from .optimizers import (
-    PlainRAdam, 
-    AdamW
-)
-from .metrics import (
-    AllAccuracyCallback,
-    F1Callback,
-    FBetaCallback,
-)
+from .optimizers import PlainRAdam, AdamW
+from .metrics import MeanDiceCallback, AllAccuracyCallback, F1Callback, FBetaCallback
 from .losses import (
     JointLoss,
     CCE,
     BinaryDiceLoss,
     BinaryDiceLogLoss,
     MulticlassDiceLoss,
-    TverskyLoss
+    TverskyLoss,
 )
 
 registry.Model(ResUnet)
@@ -33,6 +20,7 @@ registry.Model(LinkNet34)
 registry.Model(DenseNetDetector)
 registry.Model(resnet34)
 
+registry.Callback(MeanDiceCallback)
 registry.Callback(AllAccuracyCallback)
 registry.Callback(F1Callback)
 registry.Callback(FBetaCallback)

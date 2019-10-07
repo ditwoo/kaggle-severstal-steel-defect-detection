@@ -13,8 +13,8 @@ class WeightedLoss(_Loss):
 
     def forward(self, *input):
         return self.loss(*input) * self.weight
-    
-    
+
+
 class JointLoss(_Loss):
     def __init__(self, first, second, first_weight=1.0, second_weight=1.0):
         super().__init__()
@@ -23,5 +23,6 @@ class JointLoss(_Loss):
 
     def forward(self, *input):
         return self.first(*input) + self.second(*input)
-    
-__all__ = ['WeightedLoss', 'JointLoss']
+
+
+__all__ = ["WeightedLoss", "JointLoss"]

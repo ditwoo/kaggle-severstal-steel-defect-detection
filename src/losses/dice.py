@@ -6,15 +6,14 @@ from torch.nn.modules.loss import _Loss
 from typing import List
 
 
-def soft_dice_score(pred: Tensor,
-                    target: Tensor,
-                    smooth=1e-3,
-                    from_logits=False) -> Tensor:
+def soft_dice_score(
+    pred: Tensor, target: Tensor, smooth=1e-3, from_logits=False
+) -> Tensor:
     if from_logits:
         pred = pred.sigmoid()
 
-#     import pdb; pdb.set_trace()
-    
+    #     import pdb; pdb.set_trace()
+
     intersection = torch.sum(pred * target)
     union = torch.sum(pred) + torch.sum(target) + smooth
     return 2 * intersection / union
@@ -40,8 +39,10 @@ class BinaryDiceLoss(_Loss):
         if y_true.sum() == 0:
             return 0
 
-        dice = soft_dice_score(y_pred, y_true, from_logits=self.from_logits, smooth=self.smooth)
-        loss = (1.0 - dice)
+        dice = soft_dice_score(
+            y_pred, y_true, from_logits=self.from_logits, smooth=self.smooth
+        )
+        loss = 1.0 - dice
 
         return loss
 
@@ -65,8 +66,10 @@ class BinaryDiceLogLoss(_Loss):
         if y_true.sum() == 0:
             return 0
 
-        iou = soft_dice_score(y_pred, y_true, from_logits=self.from_logits, smooth=self.smooth)
-        loss = - torch.log(iou)
+        iou = soft_dice_score(
+            y_pred, y_true, from_logits=self.from_logits, smooth=self.smooth
+        )
+        loss = -torch.log(iou)
         return loss
 
 
@@ -74,7 +77,13 @@ class MulticlassDiceLoss(_Loss):
     """Implementation of Dice loss for multiclass (semantic) image segmentation task
     """
 
-    def __init__(self, classes: List[int] = None, from_logits=True, weight=None, reduction='elementwise_mean'):
+    def __init__(
+        self,
+        classes: List[int] = None,
+        from_logits=True,
+        weight=None,
+        reduction="elementwise_mean",
+    ):
         super(MulticlassDiceLoss, self).__init__(reduction=reduction)
         self.classes = classes
         self.from_logits = from_logits
@@ -114,16 +123,18 @@ class MulticlassDiceLoss(_Loss):
             if num_preds == 0:
                 loss[class_index] = 0
             else:
-                dice = soft_dice_score(dice_output, dice_target, from_logits=False, smooth=smooth)
+                dice = soft_dice_score(
+                    dice_output, dice_target, from_logits=False, smooth=smooth
+                )
                 loss[class_index] = (1.0 - dice) * weight
 
-        if self.reduction == 'elementwise_mean':
+        if self.reduction == "elementwise_mean":
             return loss.mean()
 
-        if self.reduction == 'sum':
+        if self.reduction == "sum":
             return loss.sum()
 
         return loss
 
 
-__all__ = ['BinaryDiceLoss', 'BinaryDiceLogLoss', 'MulticlassDiceLoss']
+__all__ = ["BinaryDiceLoss", "BinaryDiceLogLoss", "MulticlassDiceLoss"]
