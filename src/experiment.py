@@ -1,6 +1,7 @@
 from collections import OrderedDict
 from catalyst.dl import ConfigExperiment
 from .utils import get_dataset
+from .datasets import BalancedSampler
 
 
 class Experiment(ConfigExperiment):
@@ -14,7 +15,15 @@ class Experiment(ConfigExperiment):
         if stage == "stageFinal":
             train["transforms"] = validation["transforms"]
         datasets = OrderedDict()
-        datasets["train"] = get_dataset(**train)
-        datasets["valid"] = get_dataset(**validation)
+        train_dataset = get_dataset(**train) 
+        datasets["train"] = {
+            "dataset": train_dataset,
+            "sampler": BalancedSampler(train_dataset),
+            "shuffle": True,
+        }
+        datasets["valid"] = {
+            "dataset": get_dataset(**validation),
+            "shuffle": False,
+        }
 
         return datasets

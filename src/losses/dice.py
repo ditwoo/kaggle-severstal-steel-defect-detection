@@ -48,7 +48,8 @@ class BinaryDiceLoss(_Loss):
 
 
 class BinaryDiceLogLoss(_Loss):
-    """Implementation of logarithic Dice loss for binary image segmentation task
+    """
+    Implementation of logarithic Dice loss for binary image segmentation task
     """
 
     def __init__(self, from_logits=True, weight=None, smooth=1e-3):
@@ -74,48 +75,44 @@ class BinaryDiceLogLoss(_Loss):
 
 
 class MulticlassDiceLoss(_Loss):
-    """Implementation of Dice loss for multiclass (semantic) image segmentation task
+    """
+    Implementation of Dice loss for multiclass (semantic) image segmentation task
     """
 
     def __init__(
         self,
-        classes: List[int] = None,
         from_logits=True,
         weight=None,
+        smooth=1e-6,
         reduction="elementwise_mean",
     ):
         super(MulticlassDiceLoss, self).__init__(reduction=reduction)
-        self.classes = classes
         self.from_logits = from_logits
         self.weight = weight
+        self.smooth = smooth
 
     def forward(self, y_pred: Tensor, y_true: Tensor) -> Tensor:
         """
-        :param y_pred: NxCxHxW
-        :param y_true: NxHxW
+        :param y_pred: N*C*H*W
+        :param y_true: N*C*H*W
         :return: scalar
         """
         if self.from_logits:
-            y_pred = y_pred.softmax(dim=1)
+            y_pred = torch.sigmoid(y_pred)
 
         n_classes = y_pred.size(1)
-        smooth = 1e-3
+        smooth = self.smooth
 
         loss = torch.zeros(n_classes, dtype=torch.float, device=y_pred.device)
-
-        if self.classes is None:
-            classes = range(n_classes)
-        else:
-            classes = self.classes
 
         if self.weight is None:
             weights = [1] * n_classes
         else:
             weights = self.weight
 
-        for class_index, weight in zip(classes, weights):
+        for class_index, weight in enumerate(weights):
 
-            dice_target = (y_true == class_index).float()
+            dice_target = y_true[:, class_index, ...]
             dice_output = y_pred[:, class_index, ...]
 
             num_preds = dice_target.long().sum()

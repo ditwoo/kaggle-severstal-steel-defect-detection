@@ -5,6 +5,7 @@ from albumentations.core.serialization import from_dict
 
 from .steel import SteelDataset, RAMSteelDataset, ChannelviseSteelDataset
 from .detection import DetectionDataset
+from .samplers import BalancedSampler
 
 
 datasets_map = {

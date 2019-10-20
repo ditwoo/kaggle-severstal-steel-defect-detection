@@ -164,6 +164,44 @@ class Conv2dReLU(nn.Module):
         return self.block(x)
 
 
+class SpatialAttention2d(nn.Module):
+    def __init__(self, channel):
+        super(SpatialAttention2d, self).__init__()
+        self.squeeze = nn.Conv2d(channel, 1, kernel_size=1, bias=False)
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self, x):
+        z = self.squeeze(x)
+        z = self.sigmoid(z)
+        return x * z
+
+
+class GAB(nn.Module):
+    def __init__(self, input_dim, reduction=4):
+        super(GAB, self).__init__()
+        self.global_avgpool = nn.AdaptiveAvgPool2d(1)
+        self.conv1 = nn.Conv2d(input_dim, input_dim // reduction, kernel_size=1, stride=1)
+        self.conv2 = nn.Conv2d(input_dim // reduction, input_dim, kernel_size=1, stride=1)
+        self.relu = nn.ReLU(inplace=True)
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self, x):
+        z = self.global_avgpool(x)
+        z = self.relu(self.conv1(z))
+        z = self.sigmoid(self.conv2(z))
+        return x * z
+
+
+class SCse(nn.Module):
+    def __init__(self, dim):
+        super(SCse, self).__init__()
+        self.satt = SpatialAttention2d(dim)
+        self.catt = GAB(dim)
+
+    def forward(self, x):
+        return self.satt(x) + self.catt(x)
+
+
 class DecoderBlock(nn.Module):
     def __init__(self, in_channels: int, out_channels: int, use_batchnorm: bool = True):
         super(DecoderBlock, self).__init__()
@@ -194,6 +232,30 @@ class DecoderBlock(nn.Module):
         return x
 
 
+class SCseDecoderBlock(nn.Module):
+    def __init__(self, in_channels: int, out_channels: int, use_batchnorm: bool = True):
+        super().__init__()
+
+        self.block = nn.Sequential(
+            Conv2dReLU(
+                in_channels,
+                out_channels,
+                kernel_size=3,
+                padding=1,
+                use_batchnorm=use_batchnorm,
+            ),
+            SCse(out_channels)
+        )
+
+    def forward(self, x):
+        x, skip = x
+        x = F.interpolate(x, scale_factor=2, mode="nearest")
+        if skip is not None:
+            x = torch.cat([x, skip], dim=1)
+        x = self.block(x)
+        return x
+
+
 class CenterBlock(DecoderBlock):
     def forward(self, x):
         return self.block(x)
@@ -207,6 +269,7 @@ class UnetDecoder(nn.Module):
         num_classes: int = 1,
         use_batchnorm: bool = False,
         center: bool = False,
+        decoder_type: str = None,
     ):
         super(UnetDecoder, self).__init__()
 
@@ -219,19 +282,25 @@ class UnetDecoder(nn.Module):
         in_channels = self.__compute_channels(encoder_channels, decoder_channels)
         out_channels = decoder_channels
 
-        self.layer1 = DecoderBlock(
+        if decoder_type == 'scse':
+            decoder = SCseDecoderBlock
+        else:
+            decoder = DecoderBlock
+        
+
+        self.layer1 = decoder(
             in_channels[0], out_channels[0], use_batchnorm=use_batchnorm
         )
-        self.layer2 = DecoderBlock(
+        self.layer2 = decoder(
             in_channels[1], out_channels[1], use_batchnorm=use_batchnorm
         )
-        self.layer3 = DecoderBlock(
+        self.layer3 = decoder(
             in_channels[2], out_channels[2], use_batchnorm=use_batchnorm
         )
-        self.layer4 = DecoderBlock(
+        self.layer4 = decoder(
             in_channels[3], out_channels[3], use_batchnorm=use_batchnorm
         )
-        self.layer5 = DecoderBlock(
+        self.layer5 = decoder(
             in_channels[4], out_channels[4], use_batchnorm=use_batchnorm
         )
         self.final_conv = nn.Conv2d(out_channels[4], num_classes, kernel_size=(1, 1))
@@ -329,3 +398,63 @@ class ResUnet(nn.Module):
                 x = self.activation(x)
 
         return x
+
+
+class ResUnetScSeDecoded(nn.Module):
+    def __init__(
+        self,
+        encoder: str,
+        use_batchnorm: bool = True,
+        decoder_channels=(256, 128, 64, 32, 16),
+        num_classes: int = 1,
+        activation: str = "sigmoid",
+        center: bool = False,
+    ):
+        super().__init__()
+
+        self.encoder = get_encoder(encoder, encoder_weights="imagenet")
+        self.decoder = UnetDecoder(
+            encoder_channels=self.encoder.out_shapes,
+            decoder_channels=decoder_channels,
+            num_classes=num_classes,
+            use_batchnorm=use_batchnorm,
+            center=center,
+            decoder_type='scse',
+        )
+
+        if callable(activation) or activation is None:
+            self.activation = activation
+        elif activation == "softmax":
+            self.activation = nn.Softmax(dim=1)
+        elif activation == "sigmoid":
+            self.activation = nn.Sigmoid()
+        else:
+            raise ValueError('Activation should be "sigmoid"/"softmax"/callable/None')
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Sequentially pass `x` trough model`s `encoder` and `decoder` (return logits!)
+        """
+        x = self.encoder(x)
+        x = self.decoder(x)
+        return x
+
+    def predict(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Inference method. Switch model to `eval` mode, call `.forward(x)`
+        and apply activation function (if activation is not `None`) with `torch.no_grad()`
+        Args:
+            x: 4D torch tensor with shape (batch_size, channels, height, width)
+        Return:
+            prediction: 4D torch tensor with shape (batch_size, classes, height, width)
+        """
+        if self.training:
+            self.eval()
+
+        with torch.no_grad():
+            x = self.forward(x)
+            if self.activation:
+                x = self.activation(x)
+
+        return x
+
