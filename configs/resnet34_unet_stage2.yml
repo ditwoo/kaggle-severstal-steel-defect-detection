@@ -1,0 +1,164 @@
+model_params:
+  model: ResUnet
+  encoder: 'resnet34'
+  num_classes: 4
+
+stages:
+  state_params:
+    main_metric: dice
+    minimize_metric: False
+
+  data_params:
+    batch_size: 8
+    num_workers: 6
+
+    train:
+      dataset_type: "ChannelviseSteelDataset"
+      file: "/home/dmdr/Documents/Code/Python/kaggle/severstal_steel_defect_detection/data/splits/split_train_set.csv"
+      transforms:
+        __version__: 0.3.3
+        transform:
+          __class_fullname__: albumentations.core.composition.Compose
+          additional_targets: {}
+          bbox_params: null
+          keypoint_params: null
+          p: 1.0
+          transforms:
+          - __class_fullname__: albumentations.core.composition.OneOrOther
+            p: 0.5
+            transforms:
+            - __class_fullname__: albumentations.augmentations.transforms.Rotate
+              always_apply: false
+              border_mode: 4
+              interpolation: 1
+              limit:
+              - -10
+              - 10
+              mask_value: null
+              p: 0.5
+              value: null
+            - __class_fullname__: albumentations.augmentations.transforms.CropNonEmptyMaskIfExists
+              always_apply: false
+              height: 192
+              ignore_channels: null
+              ignore_values: [0]
+              p: 0.5
+              width: 1200
+          - __class_fullname__: albumentations.core.composition.OneOrOther
+            p: 0.5
+            transforms:
+            - __class_fullname__: albumentations.augmentations.transforms.PadIfNeeded
+              always_apply: false
+              border_mode: 4
+              mask_value: null
+              min_height: 256
+              min_width: 1600
+              p: 1.0
+              value: null
+            - __class_fullname__: albumentations.augmentations.transforms.Resize
+              always_apply: false
+              height: 256
+              interpolation: 1
+              p: 1
+              width: 1600
+          - __class_fullname__: albumentations.augmentations.transforms.Flip
+            always_apply: false
+            p: 0.5
+          - __class_fullname__: albumentations.augmentations.transforms.Blur
+            always_apply: false
+            blur_limit:
+            - 3
+            - 7
+            p: 0.5
+          - __class_fullname__: albumentations.augmentations.transforms.Normalize
+            always_apply: false
+            max_pixel_value: 255.0
+            mean:
+            - 0.485
+            - 0.456
+            - 0.406
+            p: 1.0
+            std:
+            - 0.229
+            - 0.224
+            - 0.225
+
+    validation:
+      dataset_type: "ChannelviseSteelDataset"
+      file: "/home/dmdr/Documents/Code/Python/kaggle/severstal_steel_defect_detection/data/splits/split_validation_set.csv"
+      transforms:
+        __version__: 0.3.3
+        transform:
+          __class_fullname__: albumentations.core.composition.Compose
+          additional_targets: {}
+          bbox_params: null
+          keypoint_params: null
+          p: 1.0
+          transforms:
+          - __class_fullname__: albumentations.augmentations.transforms.Resize
+            always_apply: false
+            height: 256
+            interpolation: 1
+            p: 1
+            width: 1600
+          - __class_fullname__: albumentations.augmentations.transforms.Normalize
+            always_apply: false
+            max_pixel_value: 255.0
+            mean:
+            - 0.485
+            - 0.456
+            - 0.406
+            p: 1.0
+            std:
+            - 0.229
+            - 0.224
+            - 0.225
+  
+  criterion_params:
+    criterion: BCEWithLogitsLoss
+
+  callbacks_params:
+    loss_bce:
+      callback: CriterionCallback
+
+    dice:
+      callback: DiceCallback
+    iou:
+      callback: IouCallback
+    
+    optimizer:
+      callback: OptimizerCallback
+      accumulation_steps: 2
+    
+    checkpoint:
+      callback: CheckpointCallback
+      save_n_best: 3
+
+  stage1:
+    state_params:
+      num_epochs: 60
+
+    optimizer_params:
+      optimizer: RAdam
+      lr: 0.001
+
+  # stage2:
+  #   load_from_previous_stage: True
+    
+  #   state_params:
+  #     num_epochs: 30
+    
+  #   optimizer_params:
+  #     optimizer: RAdam
+  #     lr: 0.00005
+  
+  # stage3:
+  #   load_from_previous_stage: True
+    
+  #   state_params:
+  #     num_epochs: 30
+    
+  #   optimizer_params:
+  #     optimizer: RAdam
+  #     lr: 0.00005
+
