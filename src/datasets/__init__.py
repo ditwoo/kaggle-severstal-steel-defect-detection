@@ -37,7 +37,8 @@ def get_dataset(dataset_type: str, file: str, transforms: dict, **kwargs) -> Dat
             df[_cls] = df[_cls].apply(_rle_str2arr)
         _classes = classes
     else:
-        _classes = "IsAllMissing"
+        # _classes = "IsAllMissing"
+        _classes = "NeedToPredict"
 
     data_transforms = load_transforms(transforms)
 

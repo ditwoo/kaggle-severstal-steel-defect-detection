@@ -1,0 +1,109 @@
+train:
+  dataset_type: "DetectionDataset"
+  file: "/home/dmdr/Documents/Code/Python/kaggle/severstal_steel_defect_detection/data/splits/classification_train_set.csv"
+  transforms:
+    __version__: 0.3.1
+    transform:
+      __class_fullname__: albumentations.core.composition.Compose
+      additional_targets: {}
+      bbox_params: {}
+      keypoint_params: {}
+      p: 1.0
+      transforms:
+      - __class_fullname__: albumentations.augmentations.transforms.Resize
+        always_apply: false
+        height: 256
+        interpolation: 1
+        p: 1
+        width: 256
+      - __class_fullname__: albumentations.augmentations.transforms.HorizontalFlip
+        always_apply: false
+        p: 0.5
+      - __class_fullname__: albumentations.augmentations.transforms.ElasticTransform
+        alpha: 50
+        alpha_affine: 50
+        always_apply: false
+        approximate: false
+        border_mode: 4
+        interpolation: 1
+        mask_value: null
+        p: 0.5
+        sigma: 5
+        value: null
+      - __class_fullname__: albumentations.augmentations.transforms.ShiftScaleRotate
+        always_apply: false
+        border_mode: 0
+        interpolation: 1
+        mask_value: null
+        p: 0.5
+        rotate_limit:
+        - -25
+        - 25
+        scale_limit:
+        - -0.09999999999999998
+        - 0.10000000000000009
+        shift_limit:
+        - -0.1
+        - 0.1
+        value: null
+      - __class_fullname__: albumentations.augmentations.transforms.Flip
+        always_apply: false
+        p: 0.5
+      - __class_fullname__: albumentations.augmentations.transforms.Normalize
+        always_apply: false
+        max_pixel_value: 255.0
+        mean:
+        - 0.485
+        - 0.456
+        - 0.406
+        p: 1.0
+        std:
+        - 0.229
+        - 0.224
+        - 0.225
+
+validation:
+  dataset_type: "DetectionDataset"
+  file: "/home/dmdr/Documents/Code/Python/kaggle/severstal_steel_defect_detection/data/splits/classification_validation_set.csv"
+  transforms:
+    __version__: 0.3.1
+    transform:
+      __class_fullname__: albumentations.core.composition.Compose
+      p: 1
+      transforms:
+      - __class_fullname__: albumentations.augmentations.transforms.Resize
+        always_apply: false
+        p: 1
+        height: 256
+        width: 256
+      - __class_fullname__: albumentations.augmentations.transforms.Normalize
+        always_apply: false
+        p: 1
+        mean: [0.485, 0.456, 0.406]
+        std: [0.229, 0.224, 0.225]
+        max_pixel_value: 255
+      bbox_params: {}
+      keypoint_params: {}
+      additional_targets: {}
+
+model:
+  name: DenseNetDetector
+  num_classes: 1
+  
+num epochs: 50
+random state: 2019
+batch size: 32
+num workers: 6
+
+optimizer:
+  name: RAdam
+  lr: 0.00005
+
+loss:
+  name: BCEWithLogitsLoss
+
+# metric: f1_score
+# minimize metric: false
+  
+test:
+  folder: "/home/dmdr/Documents/Code/Python/kaggle/severstal_steel_defect_detection/data/test_images"

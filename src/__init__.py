@@ -16,6 +16,8 @@ from .models import (
     QUnet,
     ModelFromCheckpoint,
     EfficientUnet,
+    PretrainedResnet,
+    PretrainedDensenet,
 )
 from .experiment import Experiment
 from .optimizers import PlainRAdam, AdamW
@@ -42,6 +44,8 @@ registry.Model(SCseUnet)
 registry.Model(ResUnetScSeDecoded)
 registry.Model(QUnet)
 registry.Model(EfficientUnet)
+registry.Model(PretrainedResnet)
+registry.Model(PretrainedDensenet)
 registry.Model(ModelFromCheckpoint)
 
 registry.Callback(MeanDiceCallback)

@@ -18,7 +18,7 @@ class Experiment(ConfigExperiment):
         train_dataset = get_dataset(**train) 
         datasets["train"] = {
             "dataset": train_dataset,
-            "sampler": BalancedSampler(train_dataset),
+            # "sampler": BalancedSampler(train_dataset),
             "shuffle": True,
         }
         datasets["valid"] = {
